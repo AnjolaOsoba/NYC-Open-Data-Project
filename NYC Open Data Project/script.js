@@ -12,88 +12,76 @@ async function getData() {
     }
 
     if (document.getElementById("chart")) {
-        createChart(allData);
-        createAccessibilityChart(allData);
-        createStatusChart(allData);
-        createOperatorChart(allData);
-        createMap(allData);
+        createChart();
+        createAccessibilityChart();
+        createStatusChart();
+        createOperatorChart();
+        createMap();
     }
 }
 
 getData();
 
-
-function displayChart(data, chartId, chartType) {
-
-    c3.generate({
-        bindto: `#${chartId}`,
-        data: {
-            columns: data,
-            type: chartType
-        }
-    });
-
-}
-
-
 function displayData(data) {
 
     let results = document.getElementById("results");
 
-    results.innerHTML = "";
+    let build = "";
 
-    for (let item of data) {
+    for (let i = 0; i < data.length; i++) {
 
-        results.innerHTML += `
+        build += `
         <div class="card">
-            <h3>${item.facility_name || "Unknown Facility"}</h3>
-            <p><b>Type:</b> ${item.location_type || "N/A"}</p>
-            <p><b>Operator:</b> ${item.operator || "N/A"}</p>
-            <p><b>Status:</b> ${item.status || "N/A"}</p>
-            <p><b>Accessibility:</b> ${item.accessibility || "N/A"}</p>
+            <h3>${data[i].facility_name || "Unknown"}</h3>
+            <p><b>Type:</b> ${data[i].location_type || "N/A"}</p>
+            <p><b>Operator:</b> ${data[i].operator || "N/A"}</p>
+            <p><b>Status:</b> ${data[i].status || "N/A"}</p>
         </div>
         `;
     }
-}
 
+    results.innerHTML = build;
+}
 
 function searchData() {
 
-    let input = document.getElementById("searchBox").value.toLowerCase();
+    let search = document
+        .getElementById("searchBox")
+        .value
+        .toLowerCase();
 
     let filtered = [];
 
-    for (let item of allData) {
+    for (let i = 0; i < allData.length; i++) {
 
-        if (
-            item.facility_name &&
-            item.facility_name.toLowerCase().includes(input)
-        ) {
-            filtered.push(item);
+        let name = allData[i].facility_name || "";
+
+        if (name.toLowerCase().includes(search)) {
+            filtered.push(allData[i]);
         }
     }
 
     displayData(filtered);
 }
 
-
 function resetData() {
     displayData(allData);
 }
 
-
-function createChart(data) {
+function createChart() {
 
     let parks = 0;
     let libraries = 0;
     let other = 0;
 
-    for (let item of data) {
+    for (let i = 0; i < allData.length; i++) {
 
-        if (item.location_type === "Park") {
+        let type = allData[i].location_type || "";
+
+        if (type.includes("Park")) {
             parks++;
         }
-        else if (item.location_type === "Library") {
+        else if (type.includes("Library")) {
             libraries++;
         }
         else {
@@ -101,99 +89,98 @@ function createChart(data) {
         }
     }
 
-    displayChart(
-        [
-            ["Parks", parks],
-            ["Libraries", libraries],
-            ["Other", other]
-        ],
-        "chart",
-        "bar"
-    );
+    c3.generate({
+        bindto: "#chart",
+        data: {
+            columns: [
+                ["Parks", parks],
+                ["Libraries", libraries],
+                ["Other", other]
+            ],
+            type: "bar"
+        }
+    });
 }
 
-
-function createAccessibilityChart(data) {
+function createAccessibilityChart() {
 
     let accessible = 0;
-    let notAccessible = 0;
-
-    for (let item of data) {
-
-        if (item.accessibility) {
-            accessible++;
-        }
-        else {
-            notAccessible++;
-        }
-    }
-
-    displayChart(
-        [
-            ["Accessible", accessible],
-            ["Not Listed", notAccessible]
-        ],
-        "accessChart",
-        "pie"
-    );
-}
-
-
-function createStatusChart(data) {
-
-    let operational = 0;
-    let notOperational = 0;
-    let closed = 0;
     let other = 0;
 
-    for (let item of data) {
+    for (let i = 0; i < allData.length; i++) {
 
-        let status = item.status || "";
+        let access = String(allData[i].accessibility || "").toLowerCase();
 
-        if (status.includes("Operational") &&
-            !status.includes("Not Operational")) {
-            operational++;
-        }
-        else if (status.includes("Not Operational")) {
-            notOperational++;
-        }
-        else if (status.includes("Closed")) {
-            closed++;
+        if (
+            access.includes("accessible") ||
+            access.includes("yes") ||
+            access.includes("ada")
+        ) {
+            accessible++;
         }
         else {
             other++;
         }
     }
 
-    displayChart(
-        [
-            ["Operational", operational],
-            ["Not Operational", notOperational],
-            ["Closed", closed],
-            ["Other", other]
-        ],
-        "statusChart",
-        "donut"
-    );
+    c3.generate({
+        bindto: "#accessChart",
+        data: {
+            columns: [
+                ["Accessible", accessible],
+                ["Other", other]
+            ],
+            type: "pie"
+        }
+    });
 }
 
+function createStatusChart() {
 
-function createOperatorChart(data) {
+    let operational = 0;
+    let closed = 0;
+
+    for (let i = 0; i < allData.length; i++) {
+
+        let status = String(allData[i].status || "");
+
+        if (status.includes("Operational")) {
+            operational++;
+        }
+        else {
+            closed++;
+        }
+    }
+
+    c3.generate({
+        bindto: "#statusChart",
+        data: {
+            columns: [
+                ["Operational", operational],
+                ["Closed / Other", closed]
+            ],
+            type: "donut"
+        }
+    });
+}
+
+function createOperatorChart() {
 
     let parks = 0;
     let libraries = 0;
     let other = 0;
 
-    for (let item of data) {
+    for (let i = 0; i < allData.length; i++) {
 
-        let operator = item.operator || "";
+        let operator = allData[i].operator || "";
 
         if (operator.includes("Parks")) {
             parks++;
         }
         else if (
-            operator.includes("BPL") ||
+            operator.includes("Library") ||
             operator.includes("NYPL") ||
+            operator.includes("BPL") ||
             operator.includes("QPL")
         ) {
             libraries++;
@@ -203,41 +190,44 @@ function createOperatorChart(data) {
         }
     }
 
-    displayChart(
-        [
-            ["NYC Parks", parks],
-            ["Libraries", libraries],
-            ["Other", other]
-        ],
-        "operatorChart",
-        "bar"
-    );
+    c3.generate({
+        bindto: "#operatorChart",
+        data: {
+            columns: [
+                ["Parks", parks],
+                ["Libraries", libraries],
+                ["Other", other]
+            ],
+            type: "bar"
+        }
+    });
 }
 
+function createMap() {
 
-function createMap(data) {
+    if (!document.getElementById("map")) {
+        return;
+    }
 
-    let map = L.map("map").setView([40.7128, -74.0060], 11);
+    let map = L.map("map").setView([40.7128, -74.0060], 10);
 
     L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
-            attribution: "OpenStreetMap"
+            attribution: "&copy; OpenStreetMap"
         }
     ).addTo(map);
 
-    for (let item of data) {
+    for (let i = 0; i < allData.length; i++) {
 
-        if (item.latitude && item.longitude) {
+        let lat = Number(allData[i].latitude);
+        let lon = Number(allData[i].longitude);
 
-            L.marker([
-                parseFloat(item.latitude),
-                parseFloat(item.longitude)
-            ])
-            .addTo(map)
-            .bindPopup(
-                `<b>${item.facility_name}</b><br>${item.location_type}`
-            );
+        if (!isNaN(lat) && !isNaN(lon)) {
+
+            L.marker([lat, lon])
+                .addTo(map)
+                .bindPopup(allData[i].facility_name || "Restroom");
         }
     }
 }
