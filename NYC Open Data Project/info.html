@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="nav">
+
+    <h1>NYC Public Restrooms</h1>
+
+    <div>
+        <a href="index.html">Home</a>
+        <a href="info.html">Information</a>
+        <a href="analysis.html">Analysis</a>
+    </div>
+
+</div>
+
+<div class="content">
+
+    <h2>Restroom Information</h2>
+
+    <p>
+        Search for restroom facilities by name.
+    </p>
+
+    <input id="searchBox" placeholder="Search facility name">
+    <button onclick="searchData()">Search</button>
+    <button onclick="resetData()">Reset</button>
+
+    <div id="results" class="results"></div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
